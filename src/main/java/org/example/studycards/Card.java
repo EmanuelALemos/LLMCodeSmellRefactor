@@ -1,5 +1,7 @@
 package org.example.studycards;
 
+import java.util.List;
+
 public class Card {
     private String question;
     private String answer;
@@ -25,8 +27,20 @@ public class Card {
         this.answer = answer;
     }
 
-    public void edit(String question, String answer) {
-        setQuestion(question);
-        setAnswer(answer);
+    public void edit(String newQuestion, String newAnswer) {
+        setQuestion(newQuestion);
+        setAnswer(newAnswer);
+    }
+
+    public boolean isAnswerCorrect(String userAnswer) {
+        return answer.equalsIgnoreCase(userAnswer);
+    }
+
+    public boolean wasQuestionAskedBefore(List<String> askedQuestions) {
+        return askedQuestions.contains(question);
+    }
+
+    public double calculateSuccessRate(int totalQuestions, int correctAnswers) {
+        return (double) correctAnswers / totalQuestions * 100;
     }
 }
