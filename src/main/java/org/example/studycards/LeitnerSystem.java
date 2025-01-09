@@ -4,8 +4,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class LeitnerSystem extends StudyMethod{
+public class LeitnerSystem extends StudyMethod {
     List<Box> boxes = null;
+
     public LeitnerSystem(String methodName) {
         super(methodName);
         boxes = new ArrayList<>(Arrays.asList(new Box(), new Box(), new Box(), new Box(), new Box()));
@@ -22,17 +23,17 @@ public class LeitnerSystem extends StudyMethod{
     }
 
     @Override
-    public String toString(){
+    public String toString() {
         StringBuilder response = new StringBuilder();
         int index = 0;
-        for(Box box : boxes){
+        for (Box box : boxes) {
             response.append("Box ").append(index).append(": ").append(box.toString()).append("\n");
             index++;
         }
         return response.toString();
     }
 
-    public void clearBoxes(){
+    public void clearBoxes() {
         boxes.clear();
         boxes = new ArrayList<>(Arrays.asList(new Box(), new Box(), new Box(), new Box(), new Box()));
     }
@@ -41,27 +42,57 @@ public class LeitnerSystem extends StudyMethod{
         return boxes;
     }
 
-    public String getRandomCard(List<Box> otherBoxes){
-        if(otherBoxes == null){
+    // Moved method from StudyCardsController
+    public String getRandomCard(List<Box> otherBoxes) {
+        if (otherBoxes == null || otherBoxes.isEmpty()) {
             return null;
         }
-        if(otherBoxes.isEmpty()){
-            return null;
-        }
-        Box allBoxes = new Box();
-        for(Box box : otherBoxes){
-            allBoxes.addCards(box.getCards());
-        }
+
+        Box allBoxes = getAllCardsFromBoxes(otherBoxes);
         Integer randomCard = allBoxes.getRandomCard();
-        if(randomCard == null){
+
+        if (randomCard == null) {
             return "No card found";
         }
+
+        Card card = getCardFromManager(randomCard);
+        return buildCardResponse(randomCard, card);
+    }
+
+    private Box getAllCardsFromBoxes(List<Box> otherBoxes) {
+        Box allBoxes = new Box();
+        for (Box box : otherBoxes) {
+            allBoxes.addCards(box.getCards());
+        }
+        return allBoxes;
+    }
+
+    public String getRandomCardFromBox() {
+        // Seleciona aleatoriamente uma caixa
+        int randomBoxIndex = (int) (Math.random() * boxes.size());
+        Box selectedBox = boxes.get(randomBoxIndex);
+
+        // Obtém uma carta aleatória da caixa selecionada
+        Integer randomCardId = selectedBox.getRandomCard();
+
+        if (randomCardId == null) {
+            return "No card found";
+        }
+
+        Card card = getCardFromManager(randomCardId);
+        return buildCardResponse(randomCardId, card);
+    }
+
+    private Card getCardFromManager(Integer randomCard) {
         CardManager manager = CardManager.getCardManager();
-        Card card = manager.getCard(randomCard);
-        String response = "["+ randomCard + "] ";
+        return manager.getCard(randomCard);
+    }
+
+    private String buildCardResponse(Integer randomCard, Card card) {
+        String response = "[" + randomCard + "] ";
         response += "The random question was: " + card.getQuestion() + " | ";
         response += "The answer is: " + card.getAnswer();
-        return  response;
+        return response;
     }
 
     public void addCardToBox(Integer id, Integer boxId) {
@@ -72,13 +103,13 @@ public class LeitnerSystem extends StudyMethod{
         this.boxes.get(boxId).removeCard(id);
     }
 
-    public Card takeCardFromBox(Integer boxId){
+    public Card takeCardFromBox(Integer boxId) {
         Integer cardId = boxes.get(boxId).getRandomCard();
         return this.cardManager.getCard(cardId);
     }
 
     public void boxIdValidation(Integer boxId) throws Exception {
-        if(boxId == null || boxId > (boxes.size()-1) || boxId <= 0){
+        if (boxId == null || boxId > (boxes.size() - 1) || boxId <= 0) {
             throw new Exception("Invalid box ID");
         }
     }
@@ -87,7 +118,7 @@ public class LeitnerSystem extends StudyMethod{
         boxIdValidation(boxId);
 
         Box refBox = boxes.get(boxId);
-        if(refBox.hasCard(cardId)){
+        if (refBox.hasCard(cardId)) {
             throw new Exception("No card Found");
         }
         refBox.removeCard(cardId);
@@ -98,11 +129,10 @@ public class LeitnerSystem extends StudyMethod{
         boxIdValidation(boxId);
 
         Box refBox = boxes.get(boxId);
-        if(refBox.hasCard(cardId)){
+        if (refBox.hasCard(cardId)) {
             throw new Exception("No card Found");
         }
         refBox.removeCard(cardId);
         boxes.get(Math.max(boxId - 1, 0)).addCard(cardId);
     }
-
 }
